@@ -2,6 +2,7 @@
 #include <stdlib.h>
 #include <unistd.h>
 
+// s
 int main(int , char **argv)
 {
 	int time = 60 * atoi(argv[1]);
