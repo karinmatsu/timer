@@ -2,6 +2,7 @@
 #include <stdlib.h>
 #include <unistd.h>
 #include <ncurses.h>
+#include <string.h>
 
 #define TIMER_LINES 3
 #define TIMER_COLS 20
@@ -40,6 +41,13 @@ int main(int , char **argv)
 	}
 			
 	system("notify-send 'boa!' 'sessão finalizada'");
+
+	char *end_msg = "time ended!";
+	
+	mvwprintw(timer, TIMER_LINES/2, (TIMER_COLS - strlen(end_msg))/2, "%s", end_msg);	
+	wrefresh(timer);
+	getch();
+		
 	delwin(timer);
 	endwin();
 	return 0;
