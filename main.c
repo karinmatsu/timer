@@ -1,20 +1,46 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <unistd.h>
+#include <ncurses.h>
 
-// s
+#define TIMER_LINES 3
+#define TIMER_COLS 20
+
+void prepare_screen()
+{
+	cbreak();
+	noecho();
+	keypad(stdscr, 1);
+	curs_set(0);
+}
+
+WINDOW *set_timer()
+{
+	WINDOW *timer = newwin(TIMER_LINES, TIMER_COLS, (LINES - TIMER_LINES)/2, (COLS - TIMER_COLS)/2);
+	refresh();
+	wrefresh(timer);
+	return timer;
+}
+
 int main(int , char **argv)
 {
-	int time = 60 * atoi(argv[1]);
+	initscr();
+	prepare_screen();
+	WINDOW *timer = set_timer();
 
+	int time = 60 * atoi(argv[1]);
+	int total_digits = 1;
 	for (int i = 0; i < time; i++)
 	{
-		printf("%d\n", i);	
+		werase(timer);
+		box(timer, 0, 0);
+		mvwprintw(timer, TIMER_LINES/2, (TIMER_COLS - total_digits)/2, "%d", i);	
+		wrefresh(timer);
 		sleep(1);
 	}
-	printf("%d\n", time);	
 			
 	system("notify-send 'boa!' 'sessão finalizada'");
-	//log_to_file((float)time/60);
+	delwin(timer);
+	endwin();
 	return 0;
 }
