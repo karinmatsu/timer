@@ -23,6 +23,29 @@ WINDOW *set_timer()
 	return timer;
 }
 
+void update_timer(WINDOW *timer, int time, int total_digits)
+{
+	werase(timer);
+	box(timer, 0, 0);
+	mvwprintw(timer, TIMER_LINES/2, (TIMER_COLS - total_digits)/2, "%d", time);	
+	wrefresh(timer);
+
+}
+
+int get_total_digits(int num)
+{
+	if (num < 10) return 1;
+	if (num < 100) return 2;
+	if (num < 1000) return 3;
+	if (num < 10000) return 4;
+	//if (i < 100000) return 5;
+
+}
+/*
+1-9 10-99 100-999 1000-9999
+9    89     899      8999
+9
+*/
 int main(int , char **argv)
 {
 	initscr();
@@ -30,13 +53,12 @@ int main(int , char **argv)
 	WINDOW *timer = set_timer();
 
 	int time = 60 * atoi(argv[1]);
+	
 	int total_digits = 1;
-	for (int i = 0; i < time; i++)
+	for (int i = 0; i < time; i++) 
 	{
-		werase(timer);
-		box(timer, 0, 0);
-		mvwprintw(timer, TIMER_LINES/2, (TIMER_COLS - total_digits)/2, "%d", i);	
-		wrefresh(timer);
+		total_digits = get_total_digits(i); 
+		update_timer(timer, i, total_digits);
 		sleep(1);
 	}
 			
