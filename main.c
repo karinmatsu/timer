@@ -6,6 +6,7 @@
 
 #define TIMER_LINES 3
 #define TIMER_COLS 20
+#define NUM_PADDING 10
 
 void prepare_screen()
 {
@@ -23,24 +24,14 @@ WINDOW *set_timer()
 	return timer;
 }
 
-void update_timer(WINDOW *timer, int time, int total_digits)
+void update_timer(WINDOW *timer, int time, int padding)
 {
 	werase(timer);
 	box(timer, 0, 0);
-	mvwprintw(timer, TIMER_LINES/2, (TIMER_COLS - total_digits)/2, "%d", time);	
+	mvwprintw(timer, TIMER_LINES/2, (TIMER_COLS - padding)/2, "%0*d", NUM_PADDING, time);	
 	wrefresh(timer);
-
 }
 
-int get_total_digits(int num)
-{
-	if (num < 10) return 1;
-	if (num < 100) return 2;
-	if (num < 1000) return 3;
-	if (num < 10000) return 4;
-	//if (i < 100000) return 5;
-
-}
 /*
 1-9 10-99 100-999 1000-9999
 9    89     899      8999
@@ -54,11 +45,9 @@ int main(int , char **argv)
 
 	int time = 60 * atoi(argv[1]);
 	
-	int total_digits = 1;
 	for (int i = 0; i < time; i++) 
-	{
-		total_digits = get_total_digits(i); 
-		update_timer(timer, i, total_digits);
+	{ 
+		update_timer(timer, i, NUM_PADDING);
 		sleep(1);
 	}
 			
