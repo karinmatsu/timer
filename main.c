@@ -32,17 +32,30 @@ void update_timer(WINDOW *timer, int time, int padding)
 	wrefresh(timer);
 }
 
+void usage()
+{
+	puts("usage: bin_name [time]");
+	exit(1);	
+}
+
 /*
 1-9 10-99 100-999 1000-9999
 9    89     899      8999
 9
 */
-int main(int , char **argv)
+int main(int argc, char **argv)
 {
+	if (argc == 1) usage();
+
+	int minutes = atoi(argv[1]);
+		
+	if (minutes == 0) usage();
+		
 	initscr();
 	prepare_screen();
 	WINDOW *timer = set_timer();
 
+	
 	int time = 60 * atoi(argv[1]);
 	
 	for (int i = 0; i < time; i++) 
@@ -58,8 +71,8 @@ int main(int , char **argv)
 	mvwprintw(timer, TIMER_LINES/2, (TIMER_COLS - strlen(end_msg))/2, "%s", end_msg);	
 	wrefresh(timer);
 	getch();
-		
-	delwin(timer);
+
+	delwin(timer);	
 	endwin();
 	return 0;
 }
