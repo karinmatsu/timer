@@ -4,28 +4,16 @@
 #include <ncurses.h>
 #include <string.h>
 #include <time.h>
+#include "timer.h"
 
-#define TIMER_LINES 3
-#define TIMER_COLS 19
 #define MENU_LINES 5
 #define MENU_COLS 8
-#define NUM_PADDING 15
 
 enum opts {OPT_RESUME, OPT_PAUSE, OPT_QUIT};
-char *g_menu_opts[] = 
-{"resume", "pause ", "quit  "};
-WINDOW *g_menu, *g_timer;
-int g_running, g_timer_finished, g_cur_opt, g_time_upper_limit;
+char *g_menu_opts[] = {"resume", "pause ", "quit  "};
+int g_cur_opt, g_running;
 
-void draw_finish_message(WINDOW *timer)
-{
-	char *end_msg = "time ended!";
-	
-	mvwprintw(timer, TIMER_LINES/2, (TIMER_COLS - strlen(end_msg))/2, "%s", end_msg);	
-	box(timer, 0, 0);
-	wrefresh(timer);
-	getch();	
-}
+WINDOW *g_menu, *g_timer;
 
 void prepare_stdscr()
 {
@@ -35,35 +23,6 @@ void prepare_stdscr()
 	keypad(stdscr, 1);
 	curs_set(0);
 	timeout(0); // non-blocking getch()
-}
-
-void build_timer(WINDOW **timer)
-{
-	*timer = newwin(TIMER_LINES, TIMER_COLS, (LINES - TIMER_LINES)/2, (COLS - TIMER_COLS)/2);
-	refresh();
-	box(*timer, 0, 0);
-	wrefresh(*timer);
-}
-
-void update_timer(time_t initial_time)
-{
-	time_t current_time;
-	time(&current_time);
-	double diff = difftime(current_time, initial_time);
-	
-	if ( diff >= g_time_upper_limit)
-	{
-		werase(g_timer);
-		draw_finish_message(g_timer);
-		g_timer_finished = 1;
-		system("notify-send 'session ended' 'great work!'");
-		return;
-	}
-	
-	werase(g_timer);
-	box(g_timer, 0, 0);
-	mvwprintw(g_timer, TIMER_LINES/2, (TIMER_COLS - NUM_PADDING)/2, "%0*ld", NUM_PADDING, (long) diff);	
-	wrefresh(g_timer);
 }
 
 void usage_n_die()
@@ -80,6 +39,7 @@ void check_args(int argc, char **argv)
 
 void update_menu()
 {	
+	box(g_menu, 0, 0);
 	for (int i = 0; i < 3; i++)
 	{
 		if (i == g_cur_opt)
@@ -92,7 +52,7 @@ void update_menu()
 		
 		mvwprintw(g_menu, i+1, 1, "%s", g_menu_opts[i]);
 	}		
-
+	
 	wrefresh(g_menu);
 }
 
@@ -111,6 +71,12 @@ void execute_opt()
 		case OPT_QUIT:
 			g_running = 0;
 			break;
+
+		case OPT_PAUSE:
+			
+
+		case OPT_RESUME:
+			
 	}
 }
 
@@ -150,25 +116,20 @@ int main(int argc, char **argv)
 	check_args(argc, argv);
 	prepare_stdscr();
 	
-	build_timer(&g_timer);
 	build_menu(&g_menu);
-	
-	g_time_upper_limit = atoi(argv[1]);
-	time_t sys_time_base;
-	time(&sys_time_base);
 
+	timer_initialize();
+	timer_set_time(atoi(argv[1]), SCALE_MINUTES);
+	
 	g_running = 1;
-	g_timer_finished = 0;
 	
 	while(g_running) 
 	{
 		handle_io();
 		update_menu();
-
-		if (g_timer_finished == 0)
-			update_timer(sys_time_base);
-
-		usleep(100); // avoid CPU burning
+		timer_update_timer();		
+		refresh();
+		sleep(0.5); // avoid CPU burning
 	}
 	
 	delwin(g_timer);	
