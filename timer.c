@@ -10,11 +10,12 @@
 
 WINDOW *g_timer_win;
 
-static void draw_finish_message(WINDOW *timer);
+static void draw_finish_message();
 static WINDOW *build_timer();
-static void update_timer(time_t initial_time);
+static void draw_time(int time);
 
-int g_running, g_timer_interrupt, g_time_upper_limit, g_timer_finished;
+int g_timer_interrupt, g_time_upper_limit, g_timer_finished;
+clock_t g_sys_time_base;
 
 static WINDOW *build_timer()
 {
@@ -24,14 +25,22 @@ static WINDOW *build_timer()
 	return timer;
 }
 
-static void draw_finish_message(WINDOW *timer)
+static void draw_finish_message()
 {
+	werase(g_timer_win);
 	char *end_msg = "time ended!";
 	
-	mvwprintw(timer, TIMER_LINES/2, (TIMER_COLS - strlen(end_msg))/2, "%s", end_msg);	
-	box(timer, 0, 0);
-	wrefresh(timer);
-	getch();	
+	mvwprintw(g_timer_win, TIMER_LINES/2, (TIMER_COLS - strlen(end_msg))/2, "%s", end_msg);	
+	box(g_timer_win, 0, 0);
+	wrefresh(g_timer_win);
+}
+
+static void draw_time(int time)
+{
+	werase(g_timer_win);
+	box(g_timer_win, 0, 0);
+	mvwprintw(g_timer_win, TIMER_LINES/2, (TIMER_COLS - NUM_PADDING)/2, "%0*ld", NUM_PADDING, (long) time);	
+	wrefresh(g_timer_win);
 }
 
 /* 
@@ -42,35 +51,38 @@ INTERFACE
 
 void timer_initialize()
 {
-	g_running = 0;
 	g_timer_finished = 0;
 	g_timer_interrupt = 0;
-
+	time(&g_sys_time_base);
+	
 	g_timer_win = build_timer();
 }
 
-void timer_set_minutes(int minutes)
+void timer_set_time(int time, short time_scale)
 {
-	g_time_upper_limit = 60 * minutes;
+	switch(time_scale)
+	{
+		case SCALE_MINUTES:
+			g_time_upper_limit = time * 60;
+			break;
+	}
 }
 
-void update_timer(time_t initial_time)
+int timer_update_timer()
 {
+	if (g_timer_finished) return TIME_ENDED;
+	
 	time_t current_time;
 	time(&current_time);
-	double diff = difftime(current_time, initial_time);
+	double diff = difftime(current_time, g_sys_time_base);
 	
-	if ( diff >= g_time_upper_limit)
+	if (diff >= g_time_upper_limit)
 	{
-		werase(g_timer_win);
-		draw_finish_message(g_timer_win);
 		g_timer_finished = 1;
-		system("notify-send 'session ended' 'great work!'");
-		return;
+		draw_finish_message();
+		return TIME_ENDED;
 	}
 	
-	werase(g_timer_win);
-	box(g_timer_win, 0, 0);
-	mvwprintw(g_timer_win, TIMER_LINES/2, (TIMER_COLS - NUM_PADDING)/2, "%0*ld", NUM_PADDING, (long) diff);	
-	wrefresh(g_timer_win);
+	draw_time(diff);	
+	return 1;
 }
