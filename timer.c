@@ -89,6 +89,9 @@ int timer_update_time()
 	
 	if (elapsed_time >= g_time_goal)
 	{
+		if (g_timer_finished != TIME_ENDED)
+			system("notify-send 'session finished' 'take a break!'");
+			
 		g_timer_finished = TIME_ENDED;
 		draw_finish_message();
 		return TIME_ENDED;
