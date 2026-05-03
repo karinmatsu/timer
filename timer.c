@@ -39,7 +39,7 @@ static void draw_time(double time)
 {
 	werase(g_timer_win);
 	box(g_timer_win, 0, 0);
-	mvwprintw(g_timer_win, TIMER_LINES/2, (TIMER_COLS - NUM_PADDING)/2, "%0*lf", NUM_PADDING, time);	
+	mvwprintw(g_timer_win, TIMER_LINES/2, (TIMER_COLS - NUM_PADDING)/2, "%0*ld", NUM_PADDING, (long)time);	
 	wrefresh(g_timer_win);
 }
 
@@ -72,7 +72,7 @@ void timer_set_time(int time, short time_scale)
 	switch(time_scale)
 	{
 		case SCALE_MINUTES:
-			g_time_goal = time * 1;
+			g_time_goal = time * 60;
 			break;
 	}
 }
