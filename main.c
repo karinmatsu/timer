@@ -13,16 +13,17 @@ enum opts {OPT_RESUME, OPT_PAUSE, OPT_QUIT};
 char *g_menu_opts[] = {"resume", "pause ", "quit  "};
 int g_cur_opt, g_running;
 
-WINDOW *g_menu, *g_timer;
+WINDOW *g_menu;
 
 void prepare_stdscr()
 {
 	initscr();
+	refresh(); 
 	cbreak();
 	noecho();
 	keypad(stdscr, 1);
 	curs_set(0);
-	timeout(0); // non-blocking getch()
+	timeout(0); /* non-blocking getch()*/
 }
 
 void usage_n_die()
@@ -59,7 +60,6 @@ void update_menu()
 void build_menu(WINDOW **menu)
 {
 	*menu = newwin(MENU_LINES, MENU_COLS, LINES - MENU_LINES, (COLS - MENU_COLS)/2);
-	refresh();
 	box(*menu, 0, 0);
 	wrefresh(*menu);
 }
@@ -73,17 +73,21 @@ void execute_opt()
 			break;
 
 		case OPT_PAUSE:
-			
+			timer_pause();
+			break;
 
 		case OPT_RESUME:
-			
+			timer_resume();
+			break;
 	}
 }
 
 void handle_io()
 {
-	int ch = getch();
+	int ch = getch(); 
 
+	if (ch == ERR) return;
+	
 	switch(ch)
 	{
 		case 's':
@@ -102,7 +106,6 @@ void handle_io()
 				break;	
 			} 
 			g_cur_opt--;
-			update_menu();
 			break;
 			
 		case 'j':
@@ -115,26 +118,26 @@ int main(int argc, char **argv)
 {
 	check_args(argc, argv);
 	prepare_stdscr();
-	
-	build_menu(&g_menu);
 
 	timer_initialize();
 	timer_set_time(atoi(argv[1]), SCALE_MINUTES);
 	
+	build_menu(&g_menu);
+	update_menu();
+
 	g_running = 1;
-	
+
+	/*main loop*/
 	while(g_running) 
 	{
 		handle_io();
+		timer_update_time();			
 		update_menu();
-		timer_update_timer();		
-		refresh();
-		sleep(0.5); // avoid CPU burning
+		usleep(1000);
 	}
-	
-	delwin(g_timer);	
+
+	timer_delwin();	
 	delwin(g_menu);
-	endwin();
 	endwin();
 	return 0;
 }
