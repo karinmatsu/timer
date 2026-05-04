@@ -29,16 +29,16 @@ void prepare_stdscr()
 
 void usage_n_die()
 {
-	puts("usage: cron <time>");
+	puts("usage: cron [args] <time>");
 	exit(1);	
 }
 
 void check_args(int argc, char **argv)
 {
-	if (argc == 1) usage_n_die();
+	if (argc == 1 || argc < 3 || argc > 3) usage_n_die();
 	// assuming user is smart and will put something different than 0.
-	if (atoi(argv[1]) == 0) usage_n_die();
-}
+	if (atoi(argv[2]) == 0) usage_n_die();
+}	
 
 void update_menu()
 {	
@@ -116,13 +116,33 @@ void handle_io()
 	}
 }
 
+short get_scale(char *opt) 
+{
+	if (strcmp(opt, "-m") == 0)
+		return SCALE_MINUTES;
+	else if (strcmp(opt, "-h") == 0)
+		return SCALE_HOURS;
+
+	return -1;
+}
+
 int main(int argc, char **argv)
 {
 	check_args(argc, argv);
+
+	short scale = get_scale(argv[1]);
+	
+	if (scale == -1)
+	{
+		printf("unrecognized '%s' parameter.\n", argv[1]);
+		usage_n_die();
+	}	
+
+	/*initialize curses mode*/
 	prepare_stdscr();
 
 	timer_initialize();
-	timer_set_time(atoi(argv[1]), SCALE_MINUTES);
+	timer_set_time(atoi(argv[2]), scale);
 	
 	build_menu();
 	update_menu();
