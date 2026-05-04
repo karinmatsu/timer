@@ -10,14 +10,14 @@
 
 WINDOW *g_timer_win;
 
-static void draw_finish_message();
-static WINDOW *build_timer();
+static void draw_finish_message(void);
+static WINDOW *build_timer(void);
 static void draw_time(double time);
 
-int g_timer_interrupt, g_time_goal, g_timer_finished;
-clock_t g_time_t0, g_time_pause_adjust, g_pause_t0;
+static int g_timer_interrupt, g_time_goal, g_timer_finished;
+static clock_t g_time_t0, g_time_pause_adjust, g_pause_t0;
 
-static WINDOW *build_timer()
+static WINDOW *build_timer(void)
 {
 	WINDOW *timer = newwin(TIMER_LINES, TIMER_COLS, (LINES - TIMER_LINES)/2, (COLS - TIMER_COLS)/2);
 	box(timer, 0, 0);
@@ -25,7 +25,7 @@ static WINDOW *build_timer()
 	return timer;
 }
 
-static void draw_finish_message()
+static void draw_finish_message(void)
 {
 	werase(g_timer_win);
 	char *end_msg = "time ended!";
@@ -43,7 +43,7 @@ static void draw_time(double time)
 	wrefresh(g_timer_win);
 }
 
-void draw_paused_state()
+void draw_paused_state(void)
 {
 	mvwprintw(g_timer_win, 0, 1, "paused");
 	wrefresh(g_timer_win);	
@@ -55,7 +55,7 @@ INTERFACE
 ============================
 */
 
-void timer_initialize()
+void timer_initialize(void)
 {
 	g_timer_finished = -1;
 	g_timer_interrupt = -1;
@@ -67,20 +67,26 @@ void timer_initialize()
 	g_timer_win = build_timer();
 }
 
-void timer_set_time(int time, short time_scale)
+int timer_set_time(int time, short time_scale)
 {
 	switch(time_scale)
 	{
 		case SCALE_MINUTES:
 			g_time_goal = time * 60;
+			return 0;
 			break;
+			
 		case SCALE_HOURS:
 			g_time_goal = time * 120;
+			return 0;
 			break;
+			
+		default:
+			return -1;
 	}
 }
 
-int timer_update_time()
+int timer_update_time(void)
 {
 	if (g_timer_finished == TIME_ENDED) return TIME_ENDED;
 	if (g_timer_interrupt == INTERR) return INTERR;
@@ -105,7 +111,7 @@ int timer_update_time()
 	return 1;
 }
 
-void timer_pause()
+void timer_pause(void)
 {
 	if (g_timer_interrupt == INTERR) return;
 
@@ -116,7 +122,7 @@ void timer_pause()
 	time(&g_pause_t0);
 }
 
-void timer_resume()
+void timer_resume(void)
 {
 	if (g_timer_interrupt == -1) return;
 	if (g_timer_finished == TIME_ENDED) return;
@@ -128,9 +134,7 @@ void timer_resume()
 	g_time_pause_adjust += t1 - g_pause_t0;
 }
 
-void timer_delwin()
+void timer_delwin(void)
 {
 	delwin(g_timer_win);	
 }
-
-
