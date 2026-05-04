@@ -16,7 +16,7 @@ int g_cur_opt, g_running;
 
 WINDOW *g_menu;
 
-void prepare_stdscr()
+void prepare_stdscr(void)
 {
 	initscr();
 	refresh(); 
@@ -27,7 +27,7 @@ void prepare_stdscr()
 	timeout(0); /* non-blocking getch()*/
 }
 
-void usage_n_die()
+void usage_n_die(void)
 {
 	puts("usage: cron [args] <time>");
 	exit(1);	
@@ -40,7 +40,7 @@ void check_args(int argc, char **argv)
 	if (atoi(argv[2]) == 0) usage_n_die();
 }	
 
-void update_menu()
+void update_menu(void)
 {	
 	box(g_menu, 0, 0);
 	for (int i = 0; i < 3; i++)
@@ -59,14 +59,14 @@ void update_menu()
 	wrefresh(g_menu);
 }
 
-void build_menu()
+void build_menu(void)
 {
 	g_menu = newwin(MENU_LINES, MENU_COLS, LINES - MENU_LINES, (COLS - MENU_COLS)/2);
 	box(g_menu, 0, 0);
 	wrefresh(g_menu);
 }
 
-void execute_opt()
+void execute_opt(void)
 {
 	switch(g_cur_opt)
 	{
@@ -84,7 +84,7 @@ void execute_opt()
 	}
 }
 
-void handle_io()
+void handle_io(void)
 {
 	int ch = getch(); 
 
@@ -112,6 +112,10 @@ void handle_io()
 			
 		case 'j':
 			execute_opt();
+			break;
+
+		default:
+			return;
 			break;
 	}
 }
@@ -142,10 +146,11 @@ int main(int argc, char **argv)
 	prepare_stdscr();
 
 	timer_initialize();
-	timer_set_time(atoi(argv[2]), scale);
+
+	if (timer_set_time(atoi(argv[2]), scale) != 0)
+		exit(1);
 	
 	build_menu();
-	update_menu();
 
 	g_running = 1;
 
@@ -161,5 +166,6 @@ int main(int argc, char **argv)
 	timer_delwin();	
 	delwin(g_menu);
 	endwin();
+
 	return EXIT_SUCCESS;
 }
