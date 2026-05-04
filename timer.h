@@ -22,9 +22,6 @@ void timer_set_time(int time, short time_scale);
 Uses the current machine time to calculate the time.
 */
 int timer_update_time();
-/*pauses the timer*/
 void timer_pause();
-/*destroys timer window*/
 void timer_delwin();
-/*resume the timer*/
 void timer_resume();
