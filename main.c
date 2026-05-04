@@ -4,13 +4,14 @@
 #include <ncurses.h>
 #include <string.h>
 #include <time.h>
+
 #include "timer.h"
 
 #define MENU_LINES 5
 #define MENU_COLS 8
 
 enum opts {OPT_RESUME, OPT_PAUSE, OPT_QUIT};
-char *g_menu_opts[] = {"resume", "pause ", "quit  "};
+char *g_menu_opts[] = {"resume", " stop ", " quit "};
 int g_cur_opt, g_running;
 
 WINDOW *g_menu;
@@ -28,13 +29,14 @@ void prepare_stdscr()
 
 void usage_n_die()
 {
-	puts("usage: bin_name <time>");
+	puts("usage: cron <time>");
 	exit(1);	
 }
 
 void check_args(int argc, char **argv)
 {
 	if (argc == 1) usage_n_die();
+	// assuming user is smart and will put something different than 0.
 	if (atoi(argv[1]) == 0) usage_n_die();
 }
 
@@ -57,11 +59,11 @@ void update_menu()
 	wrefresh(g_menu);
 }
 
-void build_menu(WINDOW **menu)
+void build_menu()
 {
-	*menu = newwin(MENU_LINES, MENU_COLS, LINES - MENU_LINES, (COLS - MENU_COLS)/2);
-	box(*menu, 0, 0);
-	wrefresh(*menu);
+	g_menu = newwin(MENU_LINES, MENU_COLS, LINES - MENU_LINES, (COLS - MENU_COLS)/2);
+	box(g_menu, 0, 0);
+	wrefresh(g_menu);
 }
 
 void execute_opt()
@@ -122,7 +124,7 @@ int main(int argc, char **argv)
 	timer_initialize();
 	timer_set_time(atoi(argv[1]), SCALE_MINUTES);
 	
-	build_menu(&g_menu);
+	build_menu();
 	update_menu();
 
 	g_running = 1;
@@ -139,5 +141,5 @@ int main(int argc, char **argv)
 	timer_delwin();	
 	delwin(g_menu);
 	endwin();
-	return 0;
+	return EXIT_SUCCESS;
 }
