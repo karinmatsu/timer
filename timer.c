@@ -74,6 +74,9 @@ void timer_set_time(int time, short time_scale)
 		case SCALE_MINUTES:
 			g_time_goal = time * 60;
 			break;
+		case SCALE_HOURS:
+			g_time_goal = time * 120;
+			break;
 	}
 }
 
@@ -82,10 +85,10 @@ int timer_update_time()
 	if (g_timer_finished == TIME_ENDED) return TIME_ENDED;
 	if (g_timer_interrupt == INTERR) return INTERR;
 
-	time_t time_t1;
-	time(&time_t1);
+	time_t t1;
+	time(&t1);
 
-	double elapsed_time = difftime(time_t1 - g_time_pause_adjust, g_time_t0);
+	double elapsed_time = difftime(t1 - g_time_pause_adjust, g_time_t0);
 	
 	if (elapsed_time >= g_time_goal)
 	{
