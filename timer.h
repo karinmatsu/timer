@@ -27,3 +27,5 @@ int timer_update_time(void);
 void timer_pause(void);
 void timer_delwin(void);
 void timer_resume(void);
+
+#endif
