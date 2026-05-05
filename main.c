@@ -16,6 +16,13 @@ int g_cur_opt, g_running;
 
 WINDOW *g_menu;
 
+void end_ncurses()
+{
+	timer_delwin();	
+	delwin(g_menu);
+	endwin();
+}
+
 void prepare_stdscr(void)
 {
 	if (initscr() == NULL) error_n_die();
@@ -158,9 +165,7 @@ int main(int argc, char **argv)
 		usleep(1000);
 	}
 
-	timer_delwin();	
-	delwin(g_menu);
-	endwin();
+	end_ncurses();
 
 	return EXIT_SUCCESS;
 }
