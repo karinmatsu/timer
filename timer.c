@@ -1,8 +1,9 @@
-#include "timer.h"
 #include <time.h>
 #include <string.h>
 #include <stdlib.h>
 #include <ncurses.h>
+#include "timer.h"
+#include "util.h"
 
 #define TIMER_LINES 3
 #define TIMER_COLS 19
@@ -20,33 +21,44 @@ static clock_t g_time_t0, g_time_pause_adjust, g_pause_t0;
 static WINDOW *build_timer(void)
 {
 	WINDOW *timer = newwin(TIMER_LINES, TIMER_COLS, (LINES - TIMER_LINES)/2, (COLS - TIMER_COLS)/2);
-	box(timer, 0, 0);
-	wrefresh(timer);
+
+	if (timer == NULL) error_n_die();
+	if (box(timer, 0, 0) == ERR) error_n_die();
+	if (wrefresh(timer) == ERR) error_n_die();
+	
 	return timer;
 }
 
 static void draw_finish_message(void)
 {
-	werase(g_timer_win);
+	if (werase(g_timer_win) == ERR) error_n_die();
 	char *end_msg = "time ended!";
 	
 	mvwprintw(g_timer_win, TIMER_LINES/2, (TIMER_COLS - strlen(end_msg))/2, "%s", end_msg);	
-	box(g_timer_win, 0, 0);
-	wrefresh(g_timer_win);
+	if (box(g_timer_win, 0, 0) == ERR) error_n_die();
+	if (wrefresh(g_timer_win) == ERR) error_n_die();
 }
 
 static void draw_time(double time)
 {
-	werase(g_timer_win);
-	box(g_timer_win, 0, 0);
+	if (werase(g_timer_win) == ERR) error_n_die();
+	if (box(g_timer_win, 0, 0) == ERR) error_n_die();
 	mvwprintw(g_timer_win, TIMER_LINES/2, (TIMER_COLS - NUM_PADDING)/2, "%0*ld", NUM_PADDING, (long)time);	
-	wrefresh(g_timer_win);
+	if (wrefresh(g_timer_win) == ERR) error_n_die();
 }
 
-void draw_paused_state(void)
+static void draw_paused_state(void)
 {
 	mvwprintw(g_timer_win, 0, 1, "paused");
-	wrefresh(g_timer_win);	
+	if (wrefresh(g_timer_win) == ERR) error_n_die();	
+}
+
+static void send_notification()
+{
+	short retval = system("notify-send 'session finished' 'take a break!'");
+
+	if (retval == -1) return;
+		error_n_die();
 }
 
 /* 
@@ -62,7 +74,7 @@ void timer_initialize(void)
 	
 	g_time_pause_adjust = 0;
 	g_pause_t0 = 0;
-	time(&g_time_t0);
+	if (time(&g_time_t0) == -1) error_n_die();
 	
 	g_timer_win = build_timer();
 }
@@ -92,15 +104,15 @@ int timer_update_time(void)
 	if (g_timer_interrupt == INTERR) return INTERR;
 
 	time_t t1;
-	time(&t1);
+	if (time(&t1) == -1) error_n_die();
 
 	double elapsed_time = difftime(t1 - g_time_pause_adjust, g_time_t0);
 	
 	if (elapsed_time >= g_time_goal)
 	{
 		if (g_timer_finished != TIME_ENDED)
-			system("notify-send 'session finished' 'take a break!'");
-			
+			send_notification();	
+		
 		g_timer_finished = TIME_ENDED;
 		draw_finish_message();
 		return TIME_ENDED;
@@ -119,7 +131,7 @@ void timer_pause(void)
 		draw_paused_state();
 
 	g_timer_interrupt = INTERR;
-	time(&g_pause_t0);
+	if (time(&g_pause_t0) == -1) error_n_die();
 }
 
 void timer_resume(void)
@@ -129,12 +141,12 @@ void timer_resume(void)
 	
 	g_timer_interrupt = -1;
 	clock_t t1;
-	time(&t1);
+	if (time(&t1) == -1) error_n_die();
 	// how many time since pause
 	g_time_pause_adjust += t1 - g_pause_t0;
 }
 
 void timer_delwin(void)
 {
-	delwin(g_timer_win);	
+	if (delwin(g_timer_win) == ERR) error_n_die();	
 }
