@@ -55,10 +55,7 @@ static void draw_paused_state(void)
 
 static void send_notification()
 {
-	short retval = system("notify-send 'session finished' 'take a break!'");
-
-	if (retval == -1) return;
-		error_n_die();
+	system("notify-send 'session finished' 'take a break!'");
 }
 
 /* 
