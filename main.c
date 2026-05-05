@@ -4,8 +4,8 @@
 #include <ncurses.h>
 #include <string.h>
 #include <time.h>
-
 #include "timer.h"
+#include "util.h"
 
 #define MENU_LINES 5
 #define MENU_COLS 8
@@ -18,19 +18,13 @@ WINDOW *g_menu;
 
 void prepare_stdscr(void)
 {
-	initscr();
-	refresh(); 
-	cbreak();
-	noecho();
-	keypad(stdscr, 1);
-	curs_set(0);
+	if (initscr() == NULL) error_n_die();
+	if (refresh() == ERR) error_n_die(); 
+	if (cbreak() == ERR) error_n_die();
+	if (noecho() == ERR) error_n_die();
+	if (keypad(stdscr, 1) == ERR) error_n_die();
+	if (curs_set(0) == ERR) error_n_die();
 	timeout(0); /* non-blocking getch()*/
-}
-
-void usage_n_die(void)
-{
-	puts("usage: cron [args] <time>");
-	exit(1);	
 }
 
 void check_args(int argc, char **argv)
@@ -42,28 +36,29 @@ void check_args(int argc, char **argv)
 
 void update_menu(void)
 {	
-	box(g_menu, 0, 0);
+	if (box(g_menu, 0, 0) == ERR) error_n_die();
+	 
 	for (int i = 0; i < 3; i++)
 	{
 		if (i == g_cur_opt)
 		{
-			wattron(g_menu, A_REVERSE);
+			if (wattron(g_menu, A_REVERSE) == ERR) error_n_die();
 			mvwprintw(g_menu, i+1, 1, "%s", g_menu_opts[i]);
-			wattroff(g_menu, A_REVERSE);
+			if (wattroff(g_menu, A_REVERSE) == ERR) error_n_die();
 			continue;
 		}
 		
 		mvwprintw(g_menu, i+1, 1, "%s", g_menu_opts[i]);
 	}		
 	
-	wrefresh(g_menu);
+	if (wrefresh(g_menu) == ERR) error_n_die();
 }
 
 void build_menu(void)
 {
 	g_menu = newwin(MENU_LINES, MENU_COLS, LINES - MENU_LINES, (COLS - MENU_COLS)/2);
-	box(g_menu, 0, 0);
-	wrefresh(g_menu);
+	if (box(g_menu, 0, 0) == ERR) error_n_die();
+	if (wrefresh(g_menu) == ERR) error_n_die();
 }
 
 void execute_opt(void)
