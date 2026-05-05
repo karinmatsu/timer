@@ -1,4 +1,4 @@
-src = main.c timer.c
+src = main.c timer.c util.c
 flags = -lncurses -Wall -Wextra -Werror
 target = cron
 cc = gcc
