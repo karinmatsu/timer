@@ -7,11 +7,26 @@
 #include "timer.h"
 #include "util.h"
 
-#define MENU_LINES 5
+#define MENU_LINES 6
 #define MENU_COLS 8
 
-enum opts {OPT_RESUME, OPT_PAUSE, OPT_QUIT};
-char *g_menu_opts[] = {"resume", " stop ", " quit "};
+enum opts {OPT_RESUME, OPT_PAUSE, OPT_QUIT, OPT_RESET};
+
+typedef struct opt
+{
+	short value;
+	char *text;	
+} Opt;
+
+Opt g_menu_opts[] =
+{
+	{OPT_RESUME, "resume"},
+	{OPT_PAUSE, " stop "},
+	{OPT_RESET, " reset"},
+	{OPT_QUIT, " quit "},
+	{-1, NULL}
+};
+
 int g_cur_opt, g_running;
 
 WINDOW *g_menu;
@@ -45,17 +60,17 @@ void update_menu(void)
 {	
 	if (box(g_menu, 0, 0) == ERR) error_n_die();
 	 
-	for (int i = 0; i < 3; i++)
+	for (int i = 0; g_menu_opts[i].text != NULL; i++)
 	{
 		if (i == g_cur_opt)
 		{
 			if (wattron(g_menu, A_REVERSE) == ERR) error_n_die();
-			mvwprintw(g_menu, i+1, 1, "%s", g_menu_opts[i]);
+			mvwprintw(g_menu, i+1, 1, "%s", g_menu_opts[i].text);
 			if (wattroff(g_menu, A_REVERSE) == ERR) error_n_die();
 			continue;
 		}
 		
-		mvwprintw(g_menu, i+1, 1, "%s", g_menu_opts[i]);
+		mvwprintw(g_menu, i+1, 1, "%s", g_menu_opts[i].text);
 	}		
 	
 	if (wrefresh(g_menu) == ERR) error_n_die();
@@ -68,9 +83,9 @@ void build_menu(void)
 	if (wrefresh(g_menu) == ERR) error_n_die();
 }
 
-void execute_opt(void)
+void execute_opt(short opt)
 {
-	switch(g_cur_opt)
+	switch(opt)
 	{
 		case OPT_QUIT:
 			g_running = 0;
@@ -83,6 +98,10 @@ void execute_opt(void)
 		case OPT_RESUME:
 			timer_resume();
 			break;
+			
+		case OPT_RESET:
+			timer_reset();
+			break;		
 	}
 }
 
@@ -95,9 +114,9 @@ void handle_io(void)
 	switch(ch)
 	{
 		case 's':
-			if (g_cur_opt >= 2)
+			if (g_cur_opt >= MENU_LINES - 3)
 			{
-				g_cur_opt = 2;
+				g_cur_opt = MENU_LINES - 3;
 				break;	
 			} 
 			g_cur_opt++;
@@ -113,7 +132,7 @@ void handle_io(void)
 			break;
 			
 		case 'j':
-			execute_opt();
+			execute_opt(g_menu_opts[g_cur_opt].value);
 			break;
 
 		default:
@@ -146,7 +165,7 @@ int main(int argc, char **argv)
 
 	/*initialize curses mode*/
 	prepare_stdscr();
-
+	timer_build();
 	timer_initialize();
 
 	if (timer_set_time(atoi(argv[2]), scale) != 0)
