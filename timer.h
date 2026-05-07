@@ -8,8 +8,14 @@
 #define INTERR 1
 
 /*
+build timer window. 
+should be called before all other timer function.
+*/
+void timer_build(void);
+/*
 build the window and initilize it's variables.
-Should be callend before all other timer funcion.
+should be called after initialize the timer 
+window with timer_build()
 */
 void timer_initialize(void);
 /*
@@ -25,7 +31,7 @@ Uses the current machine time to calculate the time.
 int timer_update_time(void);
 
 void timer_pause(void);
-void timer_delwin(void);
 void timer_resume(void);
-
+void timer_delwin(void);
+void timer_reset(void);
 #endif
