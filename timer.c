@@ -67,10 +67,10 @@ INTERFACE
 void timer_initialize(void)
 {
 	g_timer_finished = -1;
-	g_timer_interrupt = -1;
-	
+	g_timer_interrupt = -1;	
 	g_time_pause_adjust = 0;
 	g_pause_t0 = 0;
+	
 	if (time(&g_time_t0) == -1) error_n_die();
 	
 	g_timer_win = build_timer();
@@ -147,3 +147,15 @@ void timer_delwin(void)
 {
 	if (delwin(g_timer_win) == ERR) error_n_die();	
 }
+
+void timer_build(void)
+{
+	g_timer_win = build_timer();
+}
+
+void timer_reset(void)
+{
+	timer_initialize();
+}
+
+
